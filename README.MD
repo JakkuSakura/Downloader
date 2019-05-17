@@ -21,5 +21,5 @@ Append the path or filename if you want to save it somewhere
 
 ```text
 http://www.baidu.com/index.html baidu.html
-http://www.4399.com/ fall/4399.html
+http://www.4399.com/ fall/
 ```

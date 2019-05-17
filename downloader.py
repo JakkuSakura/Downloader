@@ -1,3 +1,4 @@
+#!/bin/python3
 #coding: utf-8
 import requests
 import threading
@@ -31,13 +32,17 @@ def download(url, path):
     if status == 200:
         total_size = int(response.headers['content-length']) if 'content-length' in response.headers else -1
         filename = getfilepath(url, path)
-
+        makesuredir(filename)
         with open(filename, 'wb') as of:
             for chunk in response.iter_content(chunk_size=102400):
                 if chunk:
                     of.write(chunk)
     
     return response
+
+def is_url(url):
+    return url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://')
+
 class Mission:
     def __init__(self, url, path, info=None, callback=None):
         self.url = url
@@ -83,7 +88,7 @@ class Daemon:
         self.pool = []
         self.mutex = threading.Lock()
         self.threads = [DownloadThread(self) for x in range(thread_number)]
-
+        self.count = 0
     
     def add(self, url, filepath, info=None, callback=None):
         '''
@@ -91,6 +96,7 @@ class Daemon:
         '''
         with self.mutex:
             self.pool.append(Mission(url, filepath, info=info, callback=callback))
+            self.count += 1
         
 
     def pop(self):
@@ -135,13 +141,43 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.description = 'a downloader based on python'
     parser.add_argument('-v', '--version', action='version', version='downloader 1.0')
-    parser.add_argument('download_file', help='The file(s) or the list(s) you want to download', narg='+')
+    parser.add_argument('download_file', help='The file(s) or the list(s) you want to download', nargs='+')
     parser.add_argument('-l', '--list', help='Assume your files as downloading list(s)', action="store_true", default=False)
     parser.add_argument('-d', '--dest', help='The base path where you want to save your file(s)', default='.')
-    parser.parse_args()
+    parser.add_argument('-n', '--threadnum', help='The number of downloading threads', type=int, default=5)
+    args = parser.parse_args()
 
 
-    dm = Daemon()
-    for url in parser
+    dm = Daemon(args.threadnum)
+    for url in args.download_file:
+        if args.list:
+            if is_url(url):
+                content = download(url, None).text
+            else:
+                content = readfile(url)
+            for e in content.split('\n'):
+                if e:
+                    spt = e.split()
+                    if len(spt) >= 2:
+                        url2 = spt[0]
+                        path2 = spt[1]
+                    else:
+                        url2 = spt[0]
+                        path2 = ''
+                path2 = getfilepath(url2, path2)
+                dm.add(url2, path2)
+                print('added', url2, 'as', path2)
+        else:
+            path2 = getfilepath(url, '')
+            dm.add(url, path2)
+            print('added', url, 'as', path2)
+
+    if not os.path.exists(args.dest):
+        os.makedirs(args.dest)
+    os.chdir(args.dest)
+    print('basing', os.getcwd())
+    print('start download', dm.count ,'file(s), thread number', len(dm.threads))
     dm.start()
     dm.join()
+    dm.stop()
+    print('all done, exiting')
