@@ -3,13 +3,17 @@
 a downloader based on python
 
 ## positional arguments
-  download_file         The file(s) or the list(s) you want to download
 
+```text
+  download_file         The file(s) or the list(s) you want to download
+```
 ## optional arguments
+```text
   -h, --help            show this help message and exit
   -v, --version         show program's version number and exit
   -l, --list            Assume your files as downloading list(s)
   -d DEST, --dest DEST  The base path where you want to save your file(s)
+```
 ## Download list
 ### format
 each line represents ONE file
