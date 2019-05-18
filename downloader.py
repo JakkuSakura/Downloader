@@ -164,9 +164,9 @@ if __name__ == "__main__":
                     else:
                         url2 = spt[0]
                         path2 = ''
-                path2 = getfilepath(url2, path2)
-                dm.add(url2, path2)
-                print('added', url2, 'as', path2)
+                    path2 = getfilepath(url2, path2)
+                    dm.add(url2, path2)
+                    print('added', url2, 'as', path2)
         else:
             path2 = getfilepath(url, '')
             dm.add(url, path2)
